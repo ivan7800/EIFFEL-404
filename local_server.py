@@ -1,1 +1,36 @@
-\"\"\"Serve EIFFEL 404 on an available localhost port and open the browser.\"\"\"\n\nfrom functools import partial\nfrom http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer\nfrom pathlib import Path\nfrom threading import Timer\nfrom urllib.parse import quote\nimport webbrowser\n\n\nROOT = Path(__file__).resolve().parent\n\n\nclass QuietHandler(SimpleHTTPRequestHandler):\n    def log_message(self, *_args):\n        pass\n\n\ndef main():\n    handler = partial(QuietHandler, directory=str(ROOT))\n    server = ThreadingHTTPServer((\"127.0.0.1\", 0), handler)\n    host, port = server.server_address\n    url = f\"http://{host}:{port}/\"\n    print(\"EIFFEL 404 está disponible solo en este equipo:\", url)\n    print(\"Deja esta ventana abierta mientras usas la aplicación. Pulsa Ctrl+C para detener.\")\n    Timer(0.8, webbrowser.open, args=(url,)).start()\n    try:\n        server.serve_forever()\n    except KeyboardInterrupt:\n        print(\"\\nServidor detenido.\")\n    finally:\n        server.server_close()\n\n\nif __name__ == \"__main__\":\n    main()\n
+"""Serve EIFFEL 404 on an available localhost port and open the browser."""
+
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from threading import Timer
+from urllib.parse import quote
+import webbrowser
+
+
+ROOT = Path(__file__).resolve().parent
+
+
+class QuietHandler(SimpleHTTPRequestHandler):
+    def log_message(self, *_args):
+        pass
+
+
+def main():
+    handler = partial(QuietHandler, directory=str(ROOT))
+    server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    host, port = server.server_address
+    url = f"http://{host}:{port}/"
+    print("EIFFEL 404 está disponible solo en este equipo:", url)
+    print("Deja esta ventana abierta mientras usas la aplicación. Pulsa Ctrl+C para detener.")
+    Timer(0.8, webbrowser.open, args=(url,)).start()
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nServidor detenido.")
+    finally:
+        server.server_close()
+
+
+if __name__ == "__main__":
+    main()

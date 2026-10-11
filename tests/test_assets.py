@@ -1,1 +1,65 @@
-import json\nimport struct\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nGLB_MAGIC = 0x46546C67\nJSON_CHUNK = 0x4E4F534A\nBIN_CHUNK = 0x004E4942\n\n\ndef read_glb(path: Path):\n    data = path.read_bytes()\n    magic, version, total_length = struct.unpack_from(\"<III\", data, 0)\n    assert magic == GLB_MAGIC\n    assert version == 2\n    assert total_length == len(data)\n\n    json_length, json_type = struct.unpack_from(\"<II\", data, 12)\n    assert json_type == JSON_CHUNK\n    document = json.loads(data[20 : 20 + json_length])\n\n    bin_header = 20 + json_length\n    bin_length, bin_type = struct.unpack_from(\"<II\", data, bin_header)\n    assert bin_type == BIN_CHUNK\n    bin_start = bin_header + 8\n    assert bin_start + bin_length == len(data)\n    return data, document, bin_start\n\n\ndef test_all_models_have_valid_glb_chunks_and_views():\n    models = sorted((ROOT / \"assets\").glob(\"*.glb\"))\n    assert {p.name for p in models} == {\"eiffel_404.glb\", \"paris_city.glb\", \"paris_parks.glb\"}\n    for path in models:\n        data, document, bin_start = read_glb(path)\n        assert document[\"asset\"][\"version\"] == \"2.0\"\n        assert document[\"buffers\"][0][\"byteLength\"] <= len(data) - bin_start\n        for view in document[\"bufferViews\"]:\n            end = view.get(\"byteOffset\", 0) + view[\"byteLength\"]\n            assert end <= document[\"buffers\"][0][\"byteLength\"]\n\n\ndef test_eiffel_model_height_matches_published_330m_reference():\n    data, document, bin_start = read_glb(ROOT / \"assets\" / \"eiffel_404.glb\")\n    primitive = document[\"meshes\"][0][\"primitives\"][0]\n    accessor = document[\"accessors\"][primitive[\"attributes\"][\"POSITION\"]]\n    view = document[\"bufferViews\"][accessor[\"bufferView\"]]\n    assert accessor[\"type\"] == \"VEC3\"\n    assert accessor[\"componentType\"] == 5126\n    base = bin_start + view.get(\"byteOffset\", 0) + accessor.get(\"byteOffset\", 0)\n    heights = [struct.unpack_from(\"<f\", data, base + i * 12 + 4)[0] for i in range(accessor[\"count\"])]\n    assert min(heights) >= -1\n    assert max(heights) <= 330\n    assert max(heights) >= 329\n\n\ndef test_second_floor_is_consistent_at_115m():\n    reference = json.loads((ROOT / \"assets\" / \"architecture-reference.json\").read_text(encoding=\"utf-8\"))\n    assert reference[\"official_anchors\"][\"second_floor_height_m\"] == 115\n    app_js = (ROOT / \"app.js\").read_text(encoding=\"utf-8\")\n    webgl_js = (ROOT / \"offline-webgl.js\").read_text(encoding=\"utf-8\")\n    html = (ROOT / \"index.html\").read_text(encoding=\"utf-8\")\n    assert \"SEGUNDO NIVEL · 115 M\" in app_js\n    assert \"[135,57,115,276]\" in webgl_js\n    assert 'data-level=\"2\"><span>02</span><b>SEGUNDO NIVEL</b><small>115 M</small>' in html\n
+import json
+import struct
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+GLB_MAGIC = 0x46546C67
+JSON_CHUNK = 0x4E4F534A
+BIN_CHUNK = 0x004E4942
+
+
+def read_glb(path: Path):
+    data = path.read_bytes()
+    magic, version, total_length = struct.unpack_from("<III", data, 0)
+    assert magic == GLB_MAGIC
+    assert version == 2
+    assert total_length == len(data)
+
+    json_length, json_type = struct.unpack_from("<II", data, 12)
+    assert json_type == JSON_CHUNK
+    document = json.loads(data[20 : 20 + json_length])
+
+    bin_header = 20 + json_length
+    bin_length, bin_type = struct.unpack_from("<II", data, bin_header)
+    assert bin_type == BIN_CHUNK
+    bin_start = bin_header + 8
+    assert bin_start + bin_length == len(data)
+    return data, document, bin_start
+
+
+def test_all_models_have_valid_glb_chunks_and_views():
+    models = sorted((ROOT / "assets").glob("*.glb"))
+    assert {p.name for p in models} == {"eiffel_404.glb", "paris_city.glb", "paris_parks.glb"}
+    for path in models:
+        data, document, bin_start = read_glb(path)
+        assert document["asset"]["version"] == "2.0"
+        assert document["buffers"][0]["byteLength"] <= len(data) - bin_start
+        for view in document["bufferViews"]:
+            end = view.get("byteOffset", 0) + view["byteLength"]
+            assert end <= document["buffers"][0]["byteLength"]
+
+
+def test_eiffel_model_height_matches_published_330m_reference():
+    data, document, bin_start = read_glb(ROOT / "assets" / "eiffel_404.glb")
+    primitive = document["meshes"][0]["primitives"][0]
+    accessor = document["accessors"][primitive["attributes"]["POSITION"]]
+    view = document["bufferViews"][accessor["bufferView"]]
+    assert accessor["type"] == "VEC3"
+    assert accessor["componentType"] == 5126
+    base = bin_start + view.get("byteOffset", 0) + accessor.get("byteOffset", 0)
+    heights = [struct.unpack_from("<f", data, base + i * 12 + 4)[0] for i in range(accessor["count"])]
+    assert min(heights) >= -1
+    assert max(heights) <= 330
+    assert max(heights) >= 329
+
+
+def test_second_floor_is_consistent_at_115m():
+    reference = json.loads((ROOT / "assets" / "architecture-reference.json").read_text(encoding="utf-8"))
+    assert reference["official_anchors"]["second_floor_height_m"] == 115
+    app_js = (ROOT / "app.js").read_text(encoding="utf-8")
+    webgl_js = (ROOT / "offline-webgl.js").read_text(encoding="utf-8")
+    html = (ROOT / "index.html").read_text(encoding="utf-8")
+    assert "SEGUNDO NIVEL · 115 M" in app_js
+    assert "[135,57,115,276]" in webgl_js
+    assert 'data-level="2"><span>02</span><b>SEGUNDO NIVEL</b><small>115 M</small>' in html

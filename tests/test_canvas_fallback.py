@@ -1,1 +1,29 @@
-from playwright.sync_api import expect\n\n\ndef test_canvas_mode_core_controls_work(app_server, page):\n    errors = []\n    page.on(\"pageerror\", lambda error: errors.append(str(error)))\n    response = page.goto(f\"{app_server}/?engine=canvas\", wait_until=\"networkidle\")\n    assert response and response.ok\n    expect(page.locator(\"#engineStatus\")).to_contain_text(\"MODO COMPATIBLE\")\n\n    expect(page.locator(\"#scene\")).to_be_visible()\n    for level, altitude in [(1, \"057 M\"), (2, \"115 M\"), (3, \"276 M\"), (0, \"000 M\")]:\n        page.locator(f'[data-level=\"{level}\"]').click()\n        expect(page.locator(\"#altitude\")).to_have_text(altitude)\n\n    page.locator(\"#nightBtn\").click()\n    assert \"active\" in page.locator(\"#nightBtn\").get_attribute(\"class\")\n    page.locator(\"#dayBtn\").click()\n    page.locator(\"#spinBtn\").click()\n    assert \"active\" in page.locator(\"#spinBtn\").get_attribute(\"class\")\n    page.locator(\"#resetBtn\").click()\n    expect(page.locator(\"#altitude\")).to_have_text(\"000 M\")\n    assert \"active\" not in page.locator(\"#spinBtn\").get_attribute(\"class\")\n\n    page.locator(\"#helpBtn\").click()\n    expect(page.locator(\"#helpModal\")).to_be_visible()\n    page.locator(\"#closeHelp\").click()\n    expect(page.locator(\"#helpModal\")).to_be_hidden()\n    assert not errors, errors\n
+from playwright.sync_api import expect
+
+
+def test_canvas_mode_core_controls_work(app_server, page):
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    response = page.goto(f"{app_server}/?engine=canvas", wait_until="networkidle")
+    assert response and response.ok
+    expect(page.locator("#engineStatus")).to_contain_text("MODO COMPATIBLE")
+
+    expect(page.locator("#scene")).to_be_visible()
+    for level, altitude in [(1, "057 M"), (2, "115 M"), (3, "276 M"), (0, "000 M")]:
+        page.locator(f'[data-level="{level}"]').click()
+        expect(page.locator("#altitude")).to_have_text(altitude)
+
+    page.locator("#nightBtn").click()
+    assert "active" in page.locator("#nightBtn").get_attribute("class")
+    page.locator("#dayBtn").click()
+    page.locator("#spinBtn").click()
+    assert "active" in page.locator("#spinBtn").get_attribute("class")
+    page.locator("#resetBtn").click()
+    expect(page.locator("#altitude")).to_have_text("000 M")
+    assert "active" not in page.locator("#spinBtn").get_attribute("class")
+
+    page.locator("#helpBtn").click()
+    expect(page.locator("#helpModal")).to_be_visible()
+    page.locator("#closeHelp").click()
+    expect(page.locator("#helpModal")).to_be_hidden()
+    assert not errors, errors

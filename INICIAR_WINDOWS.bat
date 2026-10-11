@@ -1,1 +1,20 @@
-@echo off\nsetlocal\ncd /d \"%~dp0\"\nwhere py >nul 2>nul\nif not errorlevel 1 goto use_py\nwhere python >nul 2>nul\nif not errorlevel 1 goto use_python\necho No se encuentra Python 3. Instala Python desde python.org y vuelve a ejecutar este archivo.\npause\nexit /b 1\n\n:use_py\npy -3 local_server.py\ngoto finish\n\n:use_python\npython local_server.py\n\n:finish\nif errorlevel 1 pause\n
+@echo off
+setlocal
+cd /d "%~dp0"
+where py >nul 2>nul
+if not errorlevel 1 goto use_py
+where python >nul 2>nul
+if not errorlevel 1 goto use_python
+echo No se encuentra Python 3. Instala Python desde python.org y vuelve a ejecutar este archivo.
+pause
+exit /b 1
+
+:use_py
+py -3 local_server.py
+goto finish
+
+:use_python
+python local_server.py
+
+:finish
+if errorlevel 1 pause

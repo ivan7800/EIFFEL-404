@@ -1,1 +1,7 @@
-.venv/\nvenv/\n__pycache__/\n.pytest_cache/\n*.py[cod]\nplaywright-report/\ntest-results/\n
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+playwright-report/
+test-results/
