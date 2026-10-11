@@ -1,28 +1,95 @@
-# EIFFEL 404 — v7.2 · Etapa 3: modelo enriquecido
+# EIFFEL 404
 
-**Objetivo:** elevar el detalle arquitectónico del modelo GLB sin cambiar el contrato con el visor WebGL local de v7.1.
+> Experiencia web interactiva para explorar una interpretación artística 3D de la Torre Eiffel y un entorno inspirado en París.
 
-## Ejecutar
-Descomprime el archivo y ejecuta `INICIAR_WINDOWS.bat` con Python 3 instalado. Abre la URL local que indique el lanzador. Si abres `index.html` directamente con `file://`, la aplicación utiliza el renderizador Canvas de reserva, que no carga el modelo GLB.
+[**Abrir la demo en GitHub Pages**](https://ivan7800.github.io/EIFFEL-404/)
 
-## Qué cambia
-Nuevo `assets/eiffel_404.glb` con 35.448 vértices, 59.080 triángulos, celosías secundarias, plataformas con barandillas, guías de ascensor, pisos y antena. Es una reconstrucción **estilizada**, no un modelo métrico exacto ni fotogrametría.
+![Estado de GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-publicado-2ea44f?logo=github)
+![Tecnologías](https://img.shields.io/badge/HTML-CSS-JavaScript-orange)
+![Modelos](https://img.shields.io/badge/3D-WebGL%20%2B%20Canvas-blue)
 
-Se incluye `generate_model.py` para reproducir el GLB con `numpy` y `trimesh` (`pip install numpy trimesh`). `blender/crear_torre.py` se conserva como prototipo de una torre editable en Blender; NO exporta automáticamente la geometría actual de alta densidad. Para editar esta versión en Blender, importa `assets/eiffel_404.glb` desde Archivo > Importar > glTF 2.0.
+## Estado actual
 
-## Estado de la aplicación
-La arquitectura WebGL nativa y el modo Canvas de reserva son los de v7.1. La fase de integración de Three.js local sigue pendiente, y la nueva geometría todavía necesita validación visual WebGL. Los controles avanzados no implementados en WebGL se muestran desactivados.
+**Release candidata, no certificada como versión final.** La página publicada carga y ofrece el modo Canvas de compatibilidad, pero en la comprobación actual de GitHub Pages no inició WebGL: las funciones de ascensor, mirador, visita guiada, entorno París, bruma, destellos, exposición y Cinema aparecieron desactivadas. La causa de ese fallo todavía no está confirmada.
 
-Más detalles: `QA_V7_ETAPA3.md`.
+La cobertura automatizada incluida es mixta: hay comprobaciones funcionales del modo Canvas y pruebas de controles WebGL con GLB inyectados o con un contexto WebGL simulado. Esas pruebas no equivalen a validar el arranque real de los tres modelos en navegadores/GPU de usuarios. Consulta [QA.md](QA.md) para límites y comandos.
 
+## Qué incluye
 
-## v7.3 — París 3D
-Tres GLB locales: Torre Eiffel, ciudad/Sena/Trocadéro y jardines/Campo de Marte. Inicia `INICIAR_WINDOWS.bat` y usa los botones CIUDAD y JARDINES. Los monumentos y distancias son interpretaciones estilizadas.
+- Exploración interactiva de la torre: giro, zoom, niveles, día/noche, recorrido panorámico, captura PNG y pantalla completa.
+- Tres modelos GLB locales para torre, ciudad y jardines.
+- Motor WebGL local y renderizador Canvas de compatibilidad.
+- Controles WebGL adicionales: ocaso, ascensor, mirador, visita guiada, bruma, destellos, exposición y modo Cinema.
+- Sonido desactivado en el motor WebGL local; la interfaz informa de las funciones no disponibles.
+- Modelos estilizados: no son fotogrametría, CAD de precisión ni un gemelo digital.
 
+## Ejecutar en Windows
 
-## Novedades v7.4 — Etapa 5
-Visita inmersiva con cámara de ascensor, cabina simplificada, mirador, visita guiada y cancelación. Véase QA_V7_ETAPA5.md.
+1. Descarga el ZIP desde **Code → Download ZIP** y descomprímelo.
+2. Instala Python 3 si el equipo no lo tiene.
+3. Ejecuta `INICIAR_WINDOWS.bat`.
+4. Abre `http://localhost:8000/` si no se abre automáticamente.
 
+El servidor local permite cargar los GLB. Al abrir `index.html` con `file://`, se utiliza el Canvas de reserva y el modelo GLB no se carga.
 
-## v7.5 — Etapa 6
-WebGL local: ocaso, bruma, destellos estilizados, exposición, Cinema y modo foto. Sonido ambiental permanece deshabilitado en WebGL local. Ver `QA_V7_ETAPA6.md` para pruebas y límites.
+## Ejecutar en otros sistemas
+
+Desde la carpeta del proyecto:
+
+```bash
+python3 -m http.server 8000
+```
+
+Abre [http://localhost:8000](http://localhost:8000).
+
+## Controles
+
+| Acción | Control |
+|---|---|
+| Girar | Arrastrar con ratón o dedo |
+| Acercar/alejar | Rueda del ratón o gesto de pellizco |
+| Cambiar nivel | Botones de nivel o teclas `1`–`4` |
+| Día / noche / ocaso | Botones; teclas `D`, `N`, `O` cuando WebGL está activo |
+| Modo foto | Botón o tecla `P`; `Escape` para salir |
+| Reiniciar | Botón **REINICIAR** |
+
+En Canvas solo están disponibles las funciones implementadas en ese motor. La interfaz desactiva los controles WebGL que no puede ofrecer.
+
+## Estructura
+
+- `index.html`, `styles.css`: interfaz.
+- `offline-webgl.js`: motor WebGL sin dependencias externas.
+- `app.js`: renderizador Canvas de compatibilidad.
+- `assets/*.glb`: modelos 3D locales.
+- `assets/architecture-reference.json`: referencias de dimensiones y fuentes oficiales.
+- `generate_model.py`: generador de la geometría Eiffel; requiere Python, NumPy y trimesh.
+- `blender/crear_torre.py`: prototipo Blender independiente; no reproduce por sí solo todos los modelos GLB publicados.
+- `tests/`: pruebas Playwright y capturas de pruebas previas.
+
+## Regenerar el modelo Eiffel
+
+```bash
+python -m pip install numpy trimesh
+python generate_model.py
+```
+
+El script sobrescribe `assets/eiffel_404.glb`. Los GLB de París se distribuyen como recursos ya generados.
+
+## Pruebas
+
+Consulta [QA.md](QA.md). Las pruebas Playwright requieren Python, Chromium y Playwright; las pruebas WebGL usan rutas de simulación y necesitan complementarse con una prueba del sitio servido en navegador real. El proyecto todavía no configura CI automatizada.
+
+## Datos arquitectónicos
+
+Las dimensiones de referencia y fuentes se registran en [assets/architecture-reference.json](assets/architecture-reference.json). La escena y sus proporciones intermedias son interpretaciones visuales; no deben utilizarse para medición técnica.
+
+## Créditos y licencia
+
+Proyecto independiente, sin afiliación con la Société d'Exploitation de la Tour Eiffel. Las marcas y el monumento pertenecen a sus titulares correspondientes.
+
+No se ha especificado una licencia de código en este repositorio. Por tanto, el código y los recursos no se ofrecen bajo una licencia de reutilización explícita. Consulta con el autor antes de reutilizarlos o redistribuirlos.
+
+---
+
+**Versión mostrada por la aplicación:** v7.6 RC  
+**Commit revisado:** [`3037eb4`](https://github.com/ivan7800/EIFFEL-404/commit/3037eb4e70b9ec6afaeaaf4bcf80c41df8b91429)
