@@ -1,17 +1,1 @@
-@echo off
-setlocal
-cd /d "%~dp0"
-where py >nul 2>nul
-if %errorlevel%==0 (
- start "EIFFEL 404" cmd /k "py -3 -m http.server 8000"
-) else (
- where python >nul 2>nul
- if errorlevel 1 (
-  echo Se necesita Python 3. Instala Python o inicia un servidor local desde VS Code.
-  pause
-  exit /b 1
- )
- start "EIFFEL 404" cmd /k "python -m http.server 8000"
-)
-timeout /t 2 >nul
-start "" "http://localhost:8000/"
+@echo off\nsetlocal\ncd /d \"%~dp0\"\nwhere py >nul 2>nul\nif not errorlevel 1 goto use_py\nwhere python >nul 2>nul\nif not errorlevel 1 goto use_python\necho No se encuentra Python 3. Instala Python desde python.org y vuelve a ejecutar este archivo.\npause\nexit /b 1\n\n:use_py\npy -3 local_server.py\ngoto finish\n\n:use_python\npython local_server.py\n\n:finish\nif errorlevel 1 pause\n
